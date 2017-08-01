@@ -16,27 +16,10 @@ import java.util.concurrent.Executors;
  */
 
 public class ImageLoader {
-    //图片缓存
-    private LruCache<String, Bitmap> mImageCache;
+    private ImageCache mImageCache = new ImageCache();
     //线程池，线程数为cpu数
     private ExecutorService mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    public ImageLoader()
-
-    {
-        initImageCache();
-    }
-
-    private void initImageCache() {
-        int maxMemory = (int) Runtime.getRuntime().maxMemory();
-        int cacheSize = maxMemory / 4;
-        mImageCache = new LruCache<String, Bitmap>(cacheSize) {
-            @Override
-            protected int sizeOf(String key, Bitmap bitmap) {
-                return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
-            }
-        };
-    }
 
     private Bitmap downloadBitmap(String pathUrl) {
         Bitmap bitmap = null;
@@ -44,6 +27,7 @@ public class ImageLoader {
             URL url = new URL(pathUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             bitmap = BitmapFactory.decodeStream(connection.getInputStream());
+            connection.disconnect();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,6 +35,11 @@ public class ImageLoader {
     }
 
     public void displayImage(final String url, final ImageView imageView) {
+        Bitmap bitmap= mImageCache.get(url);
+        if (bitmap!=null){
+            imageView.setImageBitmap(bitmap);
+            return;
+        }
         imageView.setTag(url);
         mExecutorService.submit(new Runnable() {
             @Override
