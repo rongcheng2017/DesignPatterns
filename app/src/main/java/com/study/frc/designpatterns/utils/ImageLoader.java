@@ -2,7 +2,6 @@ package com.study.frc.designpatterns.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.LruCache;
 import android.widget.ImageView;
 
 import java.io.IOException;
@@ -16,10 +15,14 @@ import java.util.concurrent.Executors;
  */
 
 public class ImageLoader {
-    private ImageCache mImageCache = new ImageCache();
     //线程池，线程数为cpu数
     private ExecutorService mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
+    private ImageCache mImageCache;
+
+    public void setImageCache(ImageCache imageCache) {
+        this.mImageCache = imageCache;
+    }
 
     private Bitmap downloadBitmap(String pathUrl) {
         Bitmap bitmap = null;
@@ -35,8 +38,8 @@ public class ImageLoader {
     }
 
     public void displayImage(final String url, final ImageView imageView) {
-        Bitmap bitmap= mImageCache.get(url);
-        if (bitmap!=null){
+        Bitmap bitmap = mImageCache.get(url);
+        if (bitmap != null) {
             imageView.setImageBitmap(bitmap);
             return;
         }
